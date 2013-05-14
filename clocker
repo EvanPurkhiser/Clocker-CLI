@@ -16,8 +16,8 @@ class Clocker
 		'clocked_in' => false,
 		'client'     => nil,
 		'worker'     => nil,
-		'work_types' => {},
-		'entires'    => [],
+		'rates'      => {},
+		'entries'    => [],
 	}
 
 	# Represents the clocker file in the current or parent directories
@@ -70,6 +70,12 @@ class Clocker
 			return self['clocked_in'] != false
 		end
 
+		# Add a new entry into the Clockerfile
+		def add_entry(entry)
+			entry = Entry[entry] unless entry.is_a? Entry
+			self['entries'] << entry
+		end
+
 		# Create a new clocker file
 		def create(details)
 			raise Exists if exists?
@@ -84,11 +90,6 @@ class Clocker
 			file.close
 			self
 		end
-	end
-
-	# A single work type, including name and price
-	class WorkType < Hash
-
 	end
 
 	# A single time entry, includ
@@ -122,12 +123,19 @@ class Clocker
 				}
 			end
 
-			# Prompt for details about a work-type
-			def work_type
-				name  = ask("Task name:", true)
-				price = ask("Hourly Rate:", true).to_f * 100
+			# Prompt for details about a the workers rates
+			def rates
+				rates = {}
 
-				WorkType[name, price.to_i]
+				begin
+					name  = ask("Task name:", true)
+					price = ask("Hourly Rate:", true).to_f * 100
+
+					rates.store(name, price)
+					puts
+				end while Prompt.ask_yn "Would you like to add another work type?"
+
+				rates
 			end
 
 			# Prompt for details about a entry
@@ -186,11 +194,8 @@ class Clocker
 				details['worker'] = Prompt.contact
 
 				puts
-				puts "Please enter the different billable work types"
-				begin
-					details['work_types'].merge! Prompt.work_type
-					puts
-				end while Prompt.ask_yn "Would you like to add another work type?"
+				puts "Please enter the different billable rates"
+				details['rates'] = Prompt.rates
 
 				clocker_file.create details
 				puts

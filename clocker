@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+$LOAD_PATH.unshift __dir__
+require 'colorize'
+
 require 'yaml'
 require 'pathname'
 require 'forwardable'
@@ -21,6 +24,8 @@ class Clocker
 	# Commands that may be run
 	module Commands
 
+		CLI_TIME_FORMAT = '%m/%d/%y %I:%M %p'
+
 		class InvalidCommand < Exception; end
 		class NoCommandGiven < Exception; end
 
@@ -36,6 +41,11 @@ class Clocker
 			raise Clockerfile::NotFound          if ! @clocker_file.exists?
 			raise Clockerfile::AllreadyClockedIn if   @clocker_file.clocked_in?
 
+			now = Time.now
+			clocker_file['clocked_in'] = now
+
+			puts "You're now on the clock!"
+			puts "Starting entry recorded at " + now.strftime(CLI_TIME_FORMAT).blue
 		end
 
 		# Cancel the current running clock
@@ -43,6 +53,7 @@ class Clocker
 			raise Clockerfile::NotFound     if ! @clocker_file.exists?
 			raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
 
+			clocker_file['clocked_in'] = false
 		end
 
 		# Stop the clock and prompt for a description of the work done

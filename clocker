@@ -107,9 +107,7 @@ class Clocker
 
 			# Prompt for the projects name
 			def project
-				{
-					'project' => ask("What's the project called:", true),
-				}
+				{ 'project' => ask("What's the project called:", true) }
 			end
 
 			# Prompt for details about a contact
@@ -140,7 +138,7 @@ class Clocker
 
 			# Prompt for details about a entry
 			def entry
-
+				{ 'description' => read_editor }
 			end
 
 			# Read data from the EDITOR by creating a temproray file and waiting
@@ -223,8 +221,8 @@ class Clocker
 
 			# Start the clock
 			def start
-				raise Clockerfile::NotFound          unless @clocker_file.exists?
-				raise Clockerfile::AllreadyClockedIn if     @clocker_file.clocked_in?
+				raise Clockerfile::NotFound unless @clocker_file.exists?
+				raise Clockerfile::AllreadyClockedIn if @clocker_file.clocked_in?
 
 				now = Time.now
 				clocker_file['clocked_in'] = now
@@ -235,7 +233,7 @@ class Clocker
 
 			# Cancel the current running clock
 			def cancel
-				raise Clockerfile::NotFound     unless @clocker_file.exists?
+				raise Clockerfile::NotFound unless @clocker_file.exists?
 				raise Clockerfile::NotClockedIn unless @clocker_file.clocked_in?
 
 				clocker_file['clocked_in'] = false
@@ -243,7 +241,7 @@ class Clocker
 
 			# Stop the clock and prompt for a description of the work done
 			def stop
-				raise Clockerfile::NotFound     unless @clocker_file.exists?
+				raise Clockerfile::NotFound unless @clocker_file.exists?
 				raise Clockerfile::NotClockedIn unless @clocker_file.clocked_in?
 
 			end
@@ -263,10 +261,9 @@ class Clocker
 
 		include Commands
 
-		attr_reader   :argv
 		attr_accessor :clocker_file
 
-		# Initalize the clockerfile
+		# Start the CLI handler for clocker
 		def initialize(argv)
 			@argv = argv
 			@clocker_file = Clockerfile.load DEFAULT_FILE

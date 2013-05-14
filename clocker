@@ -25,8 +25,6 @@ class Clocker
 
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
-			abort "Clockerfile already exists" if clocker_file.loaded?
-
 			clocker_file.create
 			save CLOCKER_SKEL
 			puts "Created new #{clocker_file.file_name} in the current directory"
@@ -99,6 +97,7 @@ class Clocker
 
 		# Create a new clocker file
 		def create
+			raise Exists if loaded?
 			@file = File.new(@file_name, 'w')
 		end
 
@@ -146,6 +145,8 @@ class Clocker
 			abort "The command '#{command}' is invalid"
 		rescue Clockerfile::NotFound
 			abort "No #{CLOCKER_FILE} found, run clocker init to create one"
+		rescue Clockerfile::Exists
+			abort "#{CLOCKER_FILE} already exists!"
 		end
 	end
 end

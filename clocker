@@ -23,7 +23,8 @@ class Clocker
 
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
-
+			clocker_file.create
+			puts "Creating new #{clocker_file.file_name} in the current directory"
 		end
 
 		# Start the clock
@@ -57,6 +58,16 @@ class Clocker
 	# Represents the clocker file in the current or parent directories
 	class Clockerfile
 
+		attr_reader :file_name
+
+		def initialize(file)
+			@file_name = file
+		end
+
+		# Create a new clocker file
+		def create
+			File.new file_name
+		end
 	end
 
 	# A single work type, including name and price
@@ -67,6 +78,13 @@ class Clocker
 	# A single time entry, includ
 	class Entry
 
+	end
+
+	attr_accessor :clocker_file
+
+	# Initalize the clockerfile object and attempt to load
+	def initialize(file = CLOCKER_FILE)
+		@clocker_file = Clockerfile.new(file)
 	end
 
 	# The CLI object for running clocker commands
@@ -84,7 +102,6 @@ class Clocker
 			Clocker.new.send command
 		end
 	end
-
 end
 
 # Start Clocker

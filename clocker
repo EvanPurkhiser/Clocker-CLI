@@ -23,11 +23,11 @@ class Clocker
 	# Represents the clocker file in the current or parent directories
 	class Clockerfile < Hash
 
-		class NotFound < Exception; end
-		class Exists   < Exception; end
+		class NotFound < StandardError; end
+		class Exists   < StandardError; end
 
-		class AllreadyClockedIn < Exception; end
-		class NotClockedIn      < Exception; end
+		class AllreadyClockedIn < StandardError; end
+		class NotClockedIn      < StandardError; end
 
 		# Factory method to load a Clockerfile
 		#
@@ -194,8 +194,8 @@ class Clocker
 
 			CLI_TIME_FORMAT = '%m/%d/%y %I:%M %p'
 
-			class InvalidCommand < Exception; end
-			class NoCommandGiven < Exception; end
+			class InvalidCommand < StandardError; end
+			class NoCommandGiven < StandardError; end
 
 			# Initalize the CLOCKER_FILE, prompting for values
 			def init

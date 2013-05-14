@@ -328,5 +328,8 @@ class Clocker
 	end
 end
 
+# Don't throw an exception when terminating
+trap("SIGINT") { puts; exit! }
+
 # Start Clocker
 Clocker::CLI.new(ARGV)

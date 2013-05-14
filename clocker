@@ -12,71 +12,12 @@ class Clocker
 	CLOCKER_SKEL =
 	{
 		'project'    => '',
+		'clocked_in' => false,
 		'client'     => nil,
 		'worker'     => nil,
-		'work_types' => nil,
-		'clocked_in' => false,
+		'work_types' => {},
 		'entires'    => [],
 	}
-
-	CLOCKER_FILE = 'Clockerfile'
-
-	# Commands that may be run
-	module Commands
-
-		CLI_TIME_FORMAT = '%m/%d/%y %I:%M %p'
-
-		class InvalidCommand < Exception; end
-		class NoCommandGiven < Exception; end
-
-		# Initalize the CLOCKER_FILE, prompting for values
-		def init
-			clocker_file.create
-			clocker_file.replace CLOCKER_SKEL
-			puts "Created new #{clocker_file.file_name} in the current directory"
-		end
-
-		# Start the clock
-		def start
-			raise Clockerfile::NotFound          if ! @clocker_file.exists?
-			raise Clockerfile::AllreadyClockedIn if   @clocker_file.clocked_in?
-
-			now = Time.now
-			clocker_file['clocked_in'] = now
-
-			puts "You're now on the clock!"
-			puts "Starting entry recorded at " + now.strftime(CLI_TIME_FORMAT).blue
-		end
-
-		# Cancel the current running clock
-		def cancel
-			raise Clockerfile::NotFound     if ! @clocker_file.exists?
-			raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
-
-			clocker_file['clocked_in'] = false
-		end
-
-		# Stop the clock and prompt for a description of the work done
-		def stop
-			raise Clockerfile::NotFound     if ! @clocker_file.exists?
-			raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
-
-		end
-
-		# Print out the current status of the CLOCKER_FILE.
-		def status
-			raise Clockerfile::NotFound if ! @clocker_file.exists?
-
-		end
-
-		# List all of the current clocked entries
-		def list
-			raise Clockerfile::NotFound if ! @clocker_file.exists?
-
-		end
-	end
-
-	include Commands
 
 	# Represents the clocker file in the current or parent directories
 	class Clockerfile < Hash
@@ -90,9 +31,8 @@ class Clocker
 		# Factory method to load a Clockerfile
 		#
 		# Attempt to load the Clockerfile data from a YAML file stored in the
-		# current working directory or any of it's parent directories. The file
-		# name to look for defaults to the CLOCKER_FILE constant
-		def self.load(file_name = CLOCKER_FILE)
+		# current working directory or any of it's parent directories.
+		def self.load(file_name)
 			directory = cwd = Pathname.getwd
 
 			# Recurse until we find it in the parent directory
@@ -119,7 +59,7 @@ class Clocker
 		attr_accessor :file_path
 
 		# Initalize a new Clockerfile with the proper filepath
-		def initialize(file_name = CLOCKER_FILE)
+		def initialize(file_name = 'Clockerfile')
 			@file_path ||= Pathname.getwd + file_name
 			super
 		end
@@ -160,38 +100,101 @@ class Clocker
 
 	end
 
-	attr_reader   :argv
-	attr_accessor :clocker_file
+	# Clocker CLI interfance
+	class CLI
 
-	# Initalize the clockerfile
-	def initialize(argv)
-		@argv = argv
-		@clocker_file = Clockerfile.load
+		DEFAULT_FILE = 'Clockerfile'
 
-		command = @argv.shift
+		# Commands that may be run
+		module Commands
 
-		begin
-			raise Commands::NoCommandGiven if command.nil?
-			raise Commands::InvalidCommand if ! Commands.instance_methods.include? command.to_sym
+			CLI_TIME_FORMAT = '%m/%d/%y %I:%M %p'
 
-			send command
-		rescue Commands::NoCommandGiven
-			abort "Please specify a command"
-		rescue Commands::InvalidCommand
-			abort "The command '#{command}' is invalid"
-		rescue Clockerfile::NotFound
-			abort "No #{@clocker_file.file_name} found, run 'clocker init' to create one"
-		rescue Clockerfile::Exists
-			abort "#{@clocker_file.file_name} already exists!"
-		rescue Clockerfile::AllreadyClockedIn
-			abort "You're already on the clock"
-		rescue Clockerfile::NotClockedIn
-			abort "You aren't currently on the clock, run 'clocker start' to clock in"
+			class InvalidCommand < Exception; end
+			class NoCommandGiven < Exception; end
+
+			# Initalize the CLOCKER_FILE, prompting for values
+			def init
+				clocker_file.create
+				clocker_file.replace CLOCKER_SKEL
+				puts "Created new #{clocker_file.file_name} in the current directory"
+			end
+
+			# Start the clock
+			def start
+				raise Clockerfile::NotFound          if ! @clocker_file.exists?
+				raise Clockerfile::AllreadyClockedIn if   @clocker_file.clocked_in?
+
+				now = Time.now
+				clocker_file['clocked_in'] = now
+
+				puts "You're now on the clock!"
+				puts "Starting entry recorded at " + now.strftime(CLI_TIME_FORMAT).blue
+			end
+
+			# Cancel the current running clock
+			def cancel
+				raise Clockerfile::NotFound     if ! @clocker_file.exists?
+				raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
+
+				clocker_file['clocked_in'] = false
+			end
+
+			# Stop the clock and prompt for a description of the work done
+			def stop
+				raise Clockerfile::NotFound     if ! @clocker_file.exists?
+				raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
+
+			end
+
+			# Print out the current status of the CLOCKER_FILE.
+			def status
+				raise Clockerfile::NotFound if ! @clocker_file.exists?
+
+			end
+
+			# List all of the current clocked entries
+			def list
+				raise Clockerfile::NotFound if ! @clocker_file.exists?
+
+			end
 		end
 
-		@clocker_file.save
+		include Commands
+
+		attr_reader   :argv
+		attr_accessor :clocker_file
+
+		# Initalize the clockerfile
+		def initialize(argv)
+			@argv = argv
+			@clocker_file = Clockerfile.load DEFAULT_FILE
+
+			command = @argv.shift
+
+			begin
+				raise Commands::NoCommandGiven if command.nil?
+				raise Commands::InvalidCommand if ! Commands.instance_methods.include? command.to_sym
+
+				send command
+			rescue Commands::NoCommandGiven
+				abort "Please specify a command"
+			rescue Commands::InvalidCommand
+				abort "The command '#{command}' is invalid"
+			rescue Clockerfile::NotFound
+				abort "No #{@clocker_file.file_name} found, run 'clocker init' to create one"
+			rescue Clockerfile::Exists
+				abort "#{@clocker_file.file_name} already exists!"
+			rescue Clockerfile::AllreadyClockedIn
+				abort "You're already on the clock"
+			rescue Clockerfile::NotClockedIn
+				abort "You aren't currently on the clock, run 'clocker start' to clock in"
+			end
+
+			@clocker_file.save
+		end
 	end
 end
 
 # Start Clocker
-Clocker.new(ARGV)
+Clocker::CLI.new(ARGV)

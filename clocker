@@ -7,14 +7,12 @@ class Clocker
 
 	CLOCKER_SKEL =
 	{
-		project:    '',
-		client:     {},
-		worker:     {},
-		work_types: {},
-
-		clocked_in_at: false,
-
-		entires: [],
+		'project'    => '',
+		'client'     => nil,
+		'worker'     => nil,
+		'work_types' => nil,
+		'clocked_in' => false,
+		'entires'    => [],
 	}
 
 	CLOCKER_FILE = 'Clockerfile'
@@ -27,6 +25,8 @@ class Clocker
 
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
+			abort "Clockerfile already exists" if clocker_file.loaded?
+
 			clocker_file.create
 			puts "Created new #{clocker_file.file_name} in the current directory"
 		end

@@ -33,19 +33,22 @@ class Clocker
 
 		# Start the clock
 		def start
-			raise Clockerfile::NotFound if ! @clocker_file.exists?
+			raise Clockerfile::NotFound          if ! @clocker_file.exists?
+			raise Clockerfile::AllreadyClockedIn if   @clocker_file.clocked_in?
 
 		end
 
 		# Cancel the current running clock
 		def cancel
-			raise Clockerfile::NotFound if ! @clocker_file.exists?
+			raise Clockerfile::NotFound     if ! @clocker_file.exists?
+			raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
 
 		end
 
 		# Stop the clock and prompt for a description of the work done
 		def stop
-			raise Clockerfile::NotFound if ! @clocker_file.exists?
+			raise Clockerfile::NotFound     if ! @clocker_file.exists?
+			raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
 
 		end
 
@@ -69,6 +72,9 @@ class Clocker
 
 		class NotFound < Exception; end
 		class Exists   < Exception; end
+
+		class AllreadyClockedIn < Exception; end
+		class NotClockedIn      < Exception; end
 
 		# Factory method to load a Clockerfile
 		#
@@ -105,6 +111,11 @@ class Clocker
 		def initialize(file_name = CLOCKER_FILE)
 			@file_path ||= Pathname.getwd + file_name
 			super
+		end
+
+		# Determine if we are currently clocked into the Clockerfile
+		def clocked_in?
+			return self['clocked_in'] != false
 		end
 
 		# Create a new clocker file
@@ -158,9 +169,13 @@ class Clocker
 		rescue Commands::InvalidCommand
 			abort "The command '#{command}' is invalid"
 		rescue Clockerfile::NotFound
-			abort "No #{@clocker_file.file_name} found, run clocker init to create one"
+			abort "No #{@clocker_file.file_name} found, run 'clocker init' to create one"
 		rescue Clockerfile::Exists
 			abort "#{@clocker_file.file_name} already exists!"
+		rescue Clockerfile::AllreadyClockedIn
+			abort "You're already on the clock"
+		rescue Clockerfile::NotClockedIn
+			abort "You aren't currently on the clock, run 'clocker start' to clock in"
 		end
 
 		@clocker_file.save

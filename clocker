@@ -6,6 +6,7 @@ require 'colorize'
 require 'yaml'
 require 'pathname'
 require 'forwardable'
+require 'tempfile'
 
 class Clocker
 
@@ -70,24 +71,19 @@ class Clocker
 		end
 
 		# Create a new clocker file
-		def create
+		def create(details)
 			raise Exists if exists?
 			File.new(file_name, 'w').close
-			self
+			replace details
 		end
 
 		# Write the current data to the Clockerfile
-		def save()
+		def save
 			raise NotFound unless exists?
 			YAML.dump(self, file = File.open(@file_path, 'w'))
 			file.close
 			self
 		end
-	end
-
-	# A contact organization or person
-	class Contact < Hash
-
 	end
 
 	# A single work type, including name and price
@@ -105,6 +101,69 @@ class Clocker
 
 		DEFAULT_FILE = 'Clockerfile'
 
+		# CLI prompts for data. This only contains class methods
+		class << Prompt = Object.new
+
+			# Prompt for the projects name
+			def project
+				{
+					'project' => ask("What's the project called:", true),
+				}
+			end
+
+			# Prompt for details about a contact
+			def contact
+				{
+					'name'      => ask("Name:", true),
+					'address_1' => ask("Address Line 1:", true),
+					'address_2' => ask("Address Line 2:", true),
+					'phone'     => ask("Phone Number:"),
+					'email'     => ask("Email Address:"),
+				}
+			end
+
+			# Prompt for details about a work-type
+			def work_type
+				name  = ask("Task name:", true)
+				price = ask("Hourly Rate:", true).to_f * 100
+
+				WorkType[name, price.to_i]
+			end
+
+			# Prompt for details about a entry
+			def entry
+
+			end
+
+			# Read data from the EDITOR by creating a temproray file and waiting
+			# for it to be saved
+			def read_editor
+				file = Tempfile.new('clocker')
+				system("vim #{file.path}")
+				contents = file.open.read.strip
+				file.delete
+
+				contents
+			end
+
+			# Ask for input and recieve an answer
+			def ask(question, required = false)
+				begin
+					print question + " "
+					answer = gets.strip
+				end while required and answer.empty?
+				answer
+			end
+
+			# Ask for a yes or no answer
+			def ask_yn(question)
+				begin
+					answer = ask(question + ' [y/n]', true).downcase
+				end until %w[y n].include? answer
+				answer == 'y'
+			end
+		end
+
 		# Commands that may be run
 		module Commands
 
@@ -115,9 +174,27 @@ class Clocker
 
 			# Initalize the CLOCKER_FILE, prompting for values
 			def init
-				clocker_file.create
-				clocker_file.replace CLOCKER_SKEL
-				puts "Created new #{clocker_file.file_name} in the current directory"
+				details = CLOCKER_SKEL
+				details.merge! Prompt.project
+
+				puts
+				puts "Please provide information about the client"
+				details['client'] = Prompt.contact
+
+				puts
+				puts "Please provide information about yourself (the worker)"
+				details['worker'] = Prompt.contact
+
+				puts
+				puts "Please enter the different billable work types"
+				begin
+					details['work_types'].merge! Prompt.work_type
+					puts
+				end while Prompt.ask_yn "Would you like to add another work type?"
+
+				clocker_file.create details
+				puts
+				puts "Created new #{clocker_file.file_name} in the current directory!".green
 			end
 
 			# Start the clock

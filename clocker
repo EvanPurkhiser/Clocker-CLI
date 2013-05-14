@@ -86,17 +86,17 @@ class Clocker
 	end
 
 	# A contact organization or person
-	class Contact
+	class Contact < Hash
 
 	end
 
 	# A single work type, including name and price
-	class WorkType
+	class WorkType < Hash
 
 	end
 
 	# A single time entry, includ
-	class Entry
+	class Entry < Hash
 
 	end
 

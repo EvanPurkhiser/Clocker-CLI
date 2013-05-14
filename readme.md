@@ -41,40 +41,27 @@ directory and all parent directories.
 Clocker offers a number of sub-commands that can be used to manage your project
 
  * `init` - Initialize the Clockerfile, prompting for details about the project
-
  * `start` - Clock in, this will record the time that you began working
-
  * `cancel` - Cancel the current recorded session
-
  * `stop` - Stop the clock, creates an entry for time worked since you clocked
    in. This will prompt you for the hourly rate that the work
-
  * `add` - Create a new entry from user input without clocking in or out. Useful
    for when you forgot to clock in or when you didn't have access to the utility
-
  * `status` - Get the current status of the project. Including total billable
    hours, total billable amount, and totals for each of the hourly rates
-
  * `list` - List all of the entires currently recorded in the Clockerfile
-
  * `invoice` - Generate a PDF invoice based on the current entries and
    information in the clocker file
-
  * `clear` - Remove all entries from the Clockerfile
 
 The usual process for using clocker would be like so:
 
  1. `clocker init` - You will be prompted to fill out information about the
     project
-
  2. `clocker start` - Clock in and begin working
-
  3. `clocker stop` - Clock out and select the hourly rate for the work you've
     done and then enter a description for the work you've done
-
  4. Repeat this process as many times as you work before your next invoice cycle
-
  5. `clocker invoice` - This will create a PDF invoice from the current entries
-
  6. `clocker clear` - This will remove the current entires so you can begin
     recording new ones for your next invoicing cycle

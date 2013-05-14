@@ -28,6 +28,7 @@ class Clocker
 			abort "Clockerfile already exists" if clocker_file.loaded?
 
 			clocker_file.create
+			save CLOCKER_SKEL
 			puts "Created new #{clocker_file.file_name} in the current directory"
 		end
 
@@ -68,20 +69,22 @@ class Clocker
 	class Clockerfile
 
 		class NotFound < Exception; end
+		class Exists   < Exception; end
 
-		attr_reader :file_name
+		attr_reader   :file_name
+		attr_accessor :data
 
 		# Attempt to load the clockerfile if it exists anywhere in the parent
 		def initialize(file_name = CLOCKER_FILE)
 			@file_name = file_name
-
 			directory = Pathname.getwd
 
 			begin
 				path = directory + @file_name
 
 				if (File.exists? path)
-					@file = File.new(path, 'w')
+					@file = File.new(path, 'w+')
+					@data = YAML::load(@file)
 					break
 				end
 
@@ -96,7 +99,14 @@ class Clocker
 
 		# Create a new clocker file
 		def create
+			@file = File.new(@file_name, 'w')
+		end
 
+		# Write the current data to the Clockerfile
+		def save(new_data = nil)
+			@data = new_data if ! new_data.nil?
+			YAML.dump(@data, @file)
+			self
 		end
 	end
 

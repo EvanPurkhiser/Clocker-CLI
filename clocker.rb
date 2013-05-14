@@ -73,11 +73,15 @@ class Clocker
 	class CLI
 
 		def initialize(argv)
+			command = argv.shift
 
+			abort "Please specify a command" if command.nil?
 
+			if ! Commands.instance_methods.include? command.to_sym
+				abort "clocker: '#{command}' is not a clocker command"
+			end
 
-
-
+			Clocker.new.send command
 		end
 	end
 

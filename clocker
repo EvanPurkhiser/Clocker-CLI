@@ -28,7 +28,7 @@ class Clocker
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
 			clocker_file.create
-			puts "Creating new #{clocker_file.file_name} in the current directory"
+			puts "Created new #{clocker_file.file_name} in the current directory"
 		end
 
 		# Start the clock

@@ -2,6 +2,7 @@
 
 require 'yaml'
 require 'pathname'
+require 'forwardable'
 
 class Clocker
 
@@ -26,37 +27,37 @@ class Clocker
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
 			clocker_file.create
-			clocker_file.merge CLOCKER_SKEL
+			clocker_file.replace CLOCKER_SKEL
 			puts "Created new #{clocker_file.file_name} in the current directory"
 		end
 
 		# Start the clock
 		def start
-			raise Clockerfile::NotFound if ! @clocker_file.loaded?
+			raise Clockerfile::NotFound if ! @clocker_file.exists?
 
 		end
 
 		# Cancel the current running clock
 		def cancel
-			raise Clockerfile::NotFound if ! @clocker_file.loaded?
+			raise Clockerfile::NotFound if ! @clocker_file.exists?
 
 		end
 
 		# Stop the clock and prompt for a description of the work done
 		def stop
-			raise Clockerfile::NotFound if ! @clocker_file.loaded?
+			raise Clockerfile::NotFound if ! @clocker_file.exists?
 
 		end
 
 		# Print out the current status of the CLOCKER_FILE.
 		def status
-			raise Clockerfile::NotFound if ! @clocker_file.loaded?
+			raise Clockerfile::NotFound if ! @clocker_file.exists?
 
 		end
 
 		# List all of the current clocked entries
 		def list
-			raise Clockerfile::NotFound if ! @clocker_file.loaded?
+			raise Clockerfile::NotFound if ! @clocker_file.exists?
 
 		end
 	end
@@ -69,37 +70,55 @@ class Clocker
 		class NotFound < Exception; end
 		class Exists   < Exception; end
 
-		def self.new(file_name = CLOCKER_FILE)
-			directory = Pathname.getwd
+		# Factory method to load a Clockerfile
+		#
+		# Attempt to load the Clockerfile data from a YAML file stored in the
+		# current working directory or any of it's parent directories. The file
+		# name to look for defaults to the CLOCKER_FILE constant
+		def self.load(file_name = CLOCKER_FILE)
+			directory = cwd = Pathname.getwd
 
+			# Recurse until we find it in the parent directory
 			begin
-				if File.exists?(path = directory + file_name)
-					replace YAML.load(@file = File.new(path, 'r+'))
+				path = directory + file_name
+
+				if File.exists? path
+					object = YAML.load_file path
+					object.file_path = path
 					break
 				end
-			end while ! (directory = directory.parent).root?
 
-			object = super
-			object.instance_variable_set :@file_name, file_name
-			object
+				directory = directory.parent
+			end while ! directory.root?
+
+			# If we weren't able to find the Clockerfile create a new one
+			object ||= new file_name
 		end
 
-		attr_reader :file_name
+		extend Forwardable
+		def_delegator :@file_path, :exist?,   :exists?
+		def_delegator :@file_path, :basename, :file_name
 
-		# Check if the Clockerfile is loaded
-		def loaded?
-			! @file.nil?
+		attr_accessor :file_path
+
+		# Initalize a new Clockerfile with the proper filepath
+		def initialize(file_name = CLOCKER_FILE)
+			@file_path ||= Pathname.getwd + file_name
+			super
 		end
 
 		# Create a new clocker file
 		def create
-			raise Exists if loaded?
-			@file = File.new(@file_name, 'w')
+			raise Exists if exists?
+			File.new(file_name, 'w').close
+			self
 		end
 
 		# Write the current data to the Clockerfile
 		def save()
-			YAML.dump(self, @file)
+			raise NotFound if ! exists?
+			YAML.dump(self, file = File.open(@file_path, 'w'))
+			file.close
 			self
 		end
 	end
@@ -125,7 +144,7 @@ class Clocker
 	# Initalize the clockerfile
 	def initialize(argv)
 		@argv = argv
-		@clocker_file = Clockerfile.new
+		@clocker_file = Clockerfile.load
 
 		command = @argv.shift
 
@@ -139,12 +158,12 @@ class Clocker
 		rescue Commands::InvalidCommand
 			abort "The command '#{command}' is invalid"
 		rescue Clockerfile::NotFound
-			abort "No #{CLOCKER_FILE} found, run clocker init to create one"
+			abort "No #{@clocker_file.file_name} found, run clocker init to create one"
 		rescue Clockerfile::Exists
-			abort "#{CLOCKER_FILE} already exists!"
+			abort "#{@clocker_file.file_name} already exists!"
 		end
 
-		clocker_file.save if clocker_file.loaded?
+		@clocker_file.save
 	end
 end
 

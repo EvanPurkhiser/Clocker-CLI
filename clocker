@@ -259,6 +259,18 @@ class Clocker
 				clocker_file['clocked_in'] = false
 			end
 
+			# Add a un-clocked entry based on user input
+			def add
+				raise Clockerfile::NotFound unless @clocker_file.exists?
+
+			end
+
+			# Remove all of the entries from the Clockerfile
+			def clear
+				raise Clockerfile::NotFound unless @clocker_file.exists?
+
+			end
+
 			# Print out the current status of the CLOCKER_FILE.
 			def status
 				raise Clockerfile::NotFound unless @clocker_file.exists?
@@ -267,6 +279,12 @@ class Clocker
 
 			# List all of the current clocked entries
 			def list
+				raise Clockerfile::NotFound unless @clocker_file.exists?
+
+			end
+
+			# Generate a PDF invoice from the current clocked entries
+			def invoice
 				raise Clockerfile::NotFound unless @clocker_file.exists?
 
 			end

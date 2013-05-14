@@ -91,7 +91,7 @@ class Clocker
 
 		# Check if the Clockerfile is loaded
 		def loaded?
-			return ! @file.nil?
+			! @file.nil?
 		end
 
 		# Create a new clocker file

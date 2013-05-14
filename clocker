@@ -21,6 +21,9 @@ class Clocker
 	# Commands that may be run
 	module Commands
 
+		class InvalidCommand < Exception; end
+		class NoCommandGiven < Exception; end
+
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
 			clocker_file.create
@@ -93,15 +96,18 @@ class Clocker
 		@argv = argv
 		@clocker_file = Clockerfile.new
 
-		command = argv.shift
+		command = @argv.shift
 
-		abort "Please specify a command" if command.nil?
+		begin
+			raise Commands::NoCommandGiven if command.nil?
+			raise Commands::InvalidCommand if ! Commands.instance_methods.include? command.to_sym
 
-		if ! Commands.instance_methods.include? command.to_sym
-			abort "clocker: '#{command}' is not a clocker command"
+			send command
+		rescue Commands::NoCommandGiven
+			abort "Please specify a command"
+		rescue Commands::InvalidCommand
+			abort "The command '#{command}' is invalid"
 		end
-
-		send command
 	end
 end
 

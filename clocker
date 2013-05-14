@@ -145,7 +145,7 @@ class Clocker
 			# for it to be saved
 			def read_editor
 				file = Tempfile.new('clocker')
-				system("vim #{file.path}")
+				system("#{ENV['EDITOR']} #{file.path}")
 				contents = file.open.read.strip
 				file.delete
 
@@ -244,6 +244,19 @@ class Clocker
 				raise Clockerfile::NotFound unless @clocker_file.exists?
 				raise Clockerfile::NotClockedIn unless @clocker_file.clocked_in?
 
+				entry =
+				{
+					'from' => clocker_file['clocked_in'],
+					'till' => Time.now,
+				}
+
+				rates = clocker_file['rates'].keys
+				entry.merge! 'type' => Prompt.ask_list(rates, "What type of work was this?")
+
+				entry.merge! Prompt.entry
+
+				clocker_file.add_entry entry
+				clocker_file['clocked_in'] = false
 			end
 
 			# Print out the current status of the CLOCKER_FILE.

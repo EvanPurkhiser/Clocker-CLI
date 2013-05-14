@@ -170,6 +170,25 @@ class Clocker
 				end until %w[y n].include? answer
 				answer == 'y'
 			end
+
+			# Ask for a selection from a list of items
+			def ask_list(list, question)
+				list = list.to_a
+
+				# List out the selection options
+				puts
+				list.each_with_index do |name, i|
+					puts " #{i + 1}) #{name}"
+				end
+				puts
+
+				# Ask for a selection
+				begin
+					answer = ask(question, true).to_i
+				end until answer > 0 and answer <= list.size
+
+				list[answer - 1]
+			end
 		end
 
 		# Commands that may be run

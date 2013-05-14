@@ -32,26 +32,31 @@ class Clocker
 
 		# Start the clock
 		def start
+			raise Clockerfile::NotFound if ! @clocker_file.loaded?
 
 		end
 
 		# Cancel the current running clock
 		def cancel
+			raise Clockerfile::NotFound if ! @clocker_file.loaded?
 
 		end
 
 		# Stop the clock and prompt for a description of the work done
 		def stop
+			raise Clockerfile::NotFound if ! @clocker_file.loaded?
 
 		end
 
 		# Print out the current status of the CLOCKER_FILE.
 		def status
+			raise Clockerfile::NotFound if ! @clocker_file.loaded?
 
 		end
 
 		# List all of the current clocked entries
 		def list
+			raise Clockerfile::NotFound if ! @clocker_file.loaded?
 
 		end
 	end
@@ -60,6 +65,8 @@ class Clocker
 
 	# Represents the clocker file in the current or parent directories
 	class Clockerfile
+
+		class NotFound < Exception; end
 
 		attr_reader :file_name
 
@@ -107,6 +114,8 @@ class Clocker
 			abort "Please specify a command"
 		rescue Commands::InvalidCommand
 			abort "The command '#{command}' is invalid"
+		rescue Clockerfile::NotFound
+			abort "No #{CLOCKER_FILE} found, run clocker init to create one"
 		end
 	end
 end

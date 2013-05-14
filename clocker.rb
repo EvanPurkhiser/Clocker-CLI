@@ -2,14 +2,23 @@
 
 require 'yaml'
 
-class Clocker
+module Clocker
+
+	CLOCKER_SKEL =
+	{
+		project:    '',
+		client:     {},
+		worker:     {},
+		work_types: {},
+
+		clocked_in_at: false,
+
+		entires: [],
+	}
 
 	CLOCKER_FILE = 'Clockerfile'
 
-	def initialize(argv)
-
-	end
-
+	# Commands that may be run
 	module Commands
 
 		# Initalize the CLOCKER_FILE, prompting for values
@@ -42,7 +51,31 @@ class Clocker
 
 		end
 	end
+
+	class Clockerfile
+
+	end
+
+	# A single work type, including name and price
+	class WorkType
+
+	end
+
+	# A single time entry, includ
+	class Entry
+
+	end
+
+	# The CLI object for running clocker commands
+	class CLI
+
+		include Command
+
+		def initialize(argv)
+
+		end
+	end
 end
 
 # Start Clocker
-Clocker.new(ARGV)
+Clocker::CLI.new(ARGV)

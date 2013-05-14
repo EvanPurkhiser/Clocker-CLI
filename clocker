@@ -26,7 +26,7 @@ class Clocker
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
 			clocker_file.create
-			clocker_file.data = CLOCKER_SKEL
+			clocker_file.merge CLOCKER_SKEL
 			puts "Created new #{clocker_file.file_name} in the current directory"
 		end
 
@@ -64,31 +64,27 @@ class Clocker
 	include Commands
 
 	# Represents the clocker file in the current or parent directories
-	class Clockerfile
+	class Clockerfile < Hash
 
 		class NotFound < Exception; end
 		class Exists   < Exception; end
 
-		attr_reader   :file_name
-		attr_accessor :data
-
-		# Attempt to load the clockerfile if it exists anywhere in the parent
-		def initialize(file_name = CLOCKER_FILE)
-			@file_name = file_name
+		def self.new(file_name = CLOCKER_FILE)
 			directory = Pathname.getwd
 
 			begin
-				path = directory + @file_name
-
-				if (File.exists? path)
-					@file = File.new(path, 'r+b')
-					@data = YAML::load(@file)
+				if File.exists?(path = directory + file_name)
+					replace YAML.load(@file = File.new(path, 'r+'))
 					break
 				end
+			end while ! (directory = directory.parent).root?
 
-				directory = directory.parent
-			end while ! directory.root?
+			object = super
+			object.instance_variable_set :@file_name, file_name
+			object
 		end
+
+		attr_reader :file_name
 
 		# Check if the Clockerfile is loaded
 		def loaded?
@@ -103,7 +99,7 @@ class Clocker
 
 		# Write the current data to the Clockerfile
 		def save()
-			YAML.dump(@data, @file)
+			YAML.dump(self, @file)
 			self
 		end
 	end

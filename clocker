@@ -60,14 +60,19 @@ class Clocker
 
 		attr_reader :file_name
 
-		def initialize(file)
+		def initialize(file = CLOCKER_FILE)
 			@file_name = file
 		end
 
 		# Create a new clocker file
 		def create
-			File.new file_name
+
 		end
+	end
+
+	# A contact organization or person
+	class Contact
+
 	end
 
 	# A single work type, including name and price
@@ -80,29 +85,25 @@ class Clocker
 
 	end
 
+	attr_reader   :argv
 	attr_accessor :clocker_file
 
-	# Initalize the clockerfile object and attempt to load
-	def initialize(file = CLOCKER_FILE)
-		@clocker_file = Clockerfile.new(file)
-	end
+	# Initalize the clockerfile
+	def initialize(argv)
+		@argv = argv
+		@clocker_file = Clockerfile.new
 
-	# The CLI object for running clocker commands
-	class CLI
+		command = argv.shift
 
-		def initialize(argv)
-			command = argv.shift
+		abort "Please specify a command" if command.nil?
 
-			abort "Please specify a command" if command.nil?
-
-			if ! Commands.instance_methods.include? command.to_sym
-				abort "clocker: '#{command}' is not a clocker command"
-			end
-
-			Clocker.new.send command
+		if ! Commands.instance_methods.include? command.to_sym
+			abort "clocker: '#{command}' is not a clocker command"
 		end
+
+		send command
 	end
 end
 
 # Start Clocker
-Clocker::CLI.new(ARGV)
+Clocker.new(ARGV)

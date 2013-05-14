@@ -46,7 +46,7 @@ class Clocker
 				end
 
 				directory = directory.parent
-			end while ! directory.root?
+			end until directory.root?
 
 			# If we weren't able to find the Clockerfile create a new one
 			object ||= new file_name
@@ -78,7 +78,7 @@ class Clocker
 
 		# Write the current data to the Clockerfile
 		def save()
-			raise NotFound if ! exists?
+			raise NotFound unless exists?
 			YAML.dump(self, file = File.open(@file_path, 'w'))
 			file.close
 			self
@@ -122,8 +122,8 @@ class Clocker
 
 			# Start the clock
 			def start
-				raise Clockerfile::NotFound          if ! @clocker_file.exists?
-				raise Clockerfile::AllreadyClockedIn if   @clocker_file.clocked_in?
+				raise Clockerfile::NotFound          unless @clocker_file.exists?
+				raise Clockerfile::AllreadyClockedIn if     @clocker_file.clocked_in?
 
 				now = Time.now
 				clocker_file['clocked_in'] = now
@@ -134,28 +134,28 @@ class Clocker
 
 			# Cancel the current running clock
 			def cancel
-				raise Clockerfile::NotFound     if ! @clocker_file.exists?
-				raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
+				raise Clockerfile::NotFound     unless @clocker_file.exists?
+				raise Clockerfile::NotClockedIn unless @clocker_file.clocked_in?
 
 				clocker_file['clocked_in'] = false
 			end
 
 			# Stop the clock and prompt for a description of the work done
 			def stop
-				raise Clockerfile::NotFound     if ! @clocker_file.exists?
-				raise Clockerfile::NotClockedIn if ! @clocker_file.clocked_in?
+				raise Clockerfile::NotFound     unless @clocker_file.exists?
+				raise Clockerfile::NotClockedIn unless @clocker_file.clocked_in?
 
 			end
 
 			# Print out the current status of the CLOCKER_FILE.
 			def status
-				raise Clockerfile::NotFound if ! @clocker_file.exists?
+				raise Clockerfile::NotFound unless @clocker_file.exists?
 
 			end
 
 			# List all of the current clocked entries
 			def list
-				raise Clockerfile::NotFound if ! @clocker_file.exists?
+				raise Clockerfile::NotFound unless @clocker_file.exists?
 
 			end
 		end
@@ -174,7 +174,7 @@ class Clocker
 
 			begin
 				raise Commands::NoCommandGiven if command.nil?
-				raise Commands::InvalidCommand if ! Commands.instance_methods.include? command.to_sym
+				raise Commands::InvalidCommand unless Commands.instance_methods.include? command.to_sym
 
 				send command
 			rescue Commands::NoCommandGiven

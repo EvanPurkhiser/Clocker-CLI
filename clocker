@@ -26,7 +26,7 @@ class Clocker
 		# Initalize the CLOCKER_FILE, prompting for values
 		def init
 			clocker_file.create
-			save CLOCKER_SKEL
+			clocker_file.data = CLOCKER_SKEL
 			puts "Created new #{clocker_file.file_name} in the current directory"
 		end
 
@@ -81,7 +81,7 @@ class Clocker
 				path = directory + @file_name
 
 				if (File.exists? path)
-					@file = File.new(path, 'w+')
+					@file = File.new(path, 'r+b')
 					@data = YAML::load(@file)
 					break
 				end
@@ -102,8 +102,7 @@ class Clocker
 		end
 
 		# Write the current data to the Clockerfile
-		def save(new_data = nil)
-			@data = new_data if ! new_data.nil?
+		def save()
 			YAML.dump(@data, @file)
 			self
 		end
@@ -148,6 +147,8 @@ class Clocker
 		rescue Clockerfile::Exists
 			abort "#{CLOCKER_FILE} already exists!"
 		end
+
+		clocker_file.save if clocker_file.loaded?
 	end
 end
 

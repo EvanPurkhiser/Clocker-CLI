@@ -2,7 +2,7 @@
 
 require 'yaml'
 
-module Clocker
+class Clocker
 
 	CLOCKER_SKEL =
 	{
@@ -52,6 +52,9 @@ module Clocker
 		end
 	end
 
+	include Commands
+
+	# Represents the clocker file in the current or parent directories
 	class Clockerfile
 
 	end
@@ -69,12 +72,15 @@ module Clocker
 	# The CLI object for running clocker commands
 	class CLI
 
-		include Command
-
 		def initialize(argv)
+
+
+
+
 
 		end
 	end
+
 end
 
 # Start Clocker

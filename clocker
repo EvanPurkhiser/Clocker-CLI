@@ -269,6 +269,9 @@ class Clocker
 			def clear
 				raise Clockerfile::NotFound unless @clocker_file.exists?
 
+				if Prompt.ask_yn("This will remove ALL of your current entries, are you sure?")
+					clocker_file['entries'] = []
+				end
 			end
 
 			# Print out the current status of the CLOCKER_FILE.

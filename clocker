@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'yaml'
+require 'pathname'
 
 class Clocker
 
@@ -70,8 +71,27 @@ class Clocker
 
 		attr_reader :file_name
 
-		def initialize(file = CLOCKER_FILE)
-			@file_name = file
+		# Attempt to load the clockerfile if it exists anywhere in the parent
+		def initialize(file_name = CLOCKER_FILE)
+			@file_name = file_name
+
+			directory = Pathname.getwd
+
+			begin
+				path = directory + @file_name
+
+				if (File.exists? path)
+					@file = File.new(path, 'w')
+					break
+				end
+
+				directory = directory.parent
+			end while ! directory.root?
+		end
+
+		# Check if the Clockerfile is loaded
+		def loaded?
+			return ! @file.nil?
 		end
 
 		# Create a new clocker file
